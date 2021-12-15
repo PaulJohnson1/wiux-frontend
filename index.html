@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="shortcut icon" href="wiux_favicon.png"/>
+    <meta content="wiux.io" property="og:title" />
+    <meta content="open source io game" property="og:description" />
+    <meta content="https://wiux-frontend.pauljohnson11.repl.co" property="og:url" />
+    <meta content="wiux_favicon.png" property="og:image" />
+
+    <title>wiux.io</title>
+
+    <style>
+      body, canvas {
+        margin: 0px;
+        overflow: hidden;
+        padding: 0px;
+      }
+
+      #input {
+        font-family: sans-serif;
+        font-size: 200%;
+        height: 6%;
+        left: 50%;
+        padding: 0px 10px;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 15%;
+      }
+
+      #spawn {
+        background-color: #7c7c7c;
+        border-radius: 15px;
+        font-size: 200%;
+        font-family: sans-serif;
+        height: 45px;
+        left: 50%;
+        padding: 10px 10px;
+        position: absolute;
+        text-align: center;
+        top: 60%;
+        transform: translate(-50%, -50%);
+        vertical-align: middle;
+        width: 180px;
+      }
+
+      #background {
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+      }
+
+      #discord {
+        left: 25%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+  <body>
+    <img id="background" src="wiux_background.png"/>
+    <input id="input" placeholder="Name" maxlength=50></input>
+    <div id="spawn">Join Game</div>
+    <iframe id="discord" src="https://discord.com/widget?id=919224792408809502&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+    <canvas id="canvas"></canvas>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
