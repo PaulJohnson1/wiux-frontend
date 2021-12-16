@@ -131,11 +131,17 @@ export default class Game {
       clientX -= window.innerWidth / 2;
       clientY -= window.innerHeight / 2;
 
+      clientX *= devicePixelRatio;
+      clientY *= devicePixelRatio;
+
       this.mouse.angle = Math.atan2(clientY, clientX);
       this.mouse.distance = Math.sqrt(clientX ** 2 + clientY ** 2);
     });
 
     this.canvas.addEventListener("mousedown", ({ clientX, clientY }) => {
+      clientX *= devicePixelRatio;
+      clientY *= devicePixelRatio;
+
       this.mouse.pressed = true;
 
       for (const upgrade of this.upgrades) {
@@ -208,8 +214,8 @@ export default class Game {
         if (x === 1234) break;
 
         const circle = new MinimapEntity(this);
-        circle.x = x / 127 * 100 + 125;
-        circle.y = reader.vi() / 127 * 100 + innerHeight - 125;
+        circle.x = x / 127 * 100 / devicePixelRatio + 125 / devicePixelRatio;
+        circle.y = reader.vi() / 127 * 100 / devicePixelRatio + innerHeight - 125 / devicePixelRatio;
         circle.color = reader.vu();
         circle.size = reader.vu() / this.world.size * 100;
 
@@ -338,10 +344,10 @@ export default class Game {
         upgrade.y / devicePixelRatio,
         150 / devicePixelRatio,
         40 / devicePixelRatio,
-        6
+        6 / devicePixelRatio
       );
 
-      this.ctx.fontSize = "12px";
+      this.ctx.font = `${12 / devicePixelRatio}px Arial`;
       this.ctx.fillStyle = "#000";
       this.ctx.fillText(
         upgrade.name,
@@ -349,7 +355,7 @@ export default class Game {
         (upgrade.y + 45 / 2) / devicePixelRatio
       );
 
-      this.ctx.fontSize = "20px";
+      this.ctx.font = `${20 / devicePixelRatio}px Arial`;
 
       this.ctx.fillText(
         upgrade.value,
@@ -361,7 +367,13 @@ export default class Game {
     // minimap
     this.ctx.fillStyle = "#555";
     this.ctx.beginPath();
-    this.ctx.arc(125, window.innerHeight - 125, 100, 0, Math.PI * 2);
+    this.ctx.arc(
+      125 / devicePixelRatio,
+      window.innerHeight - 125 / devicePixelRatio,
+      100 / devicePixelRatio,
+      0,
+      Math.PI * 2
+    );
     this.ctx.fill();
     this.ctx.closePath();
 
@@ -385,8 +397,8 @@ export default class Game {
   tick() {
     if (this.player) {
       const you = new MinimapEntity(this);
-      you.x = -this.player.x / this.world.size * 100 + 125;
-      you.y = -this.player.y / this.world.size * 100 + innerHeight - 125;
+      you.x = -this.player.x / this.world.size * 100 / devicePixelRatio + 125 / devicePixelRatio;
+      you.y = -this.player.y / this.world.size * 100 / devicePixelRatio + innerHeight - 125 / devicePixelRatio;
       you.color = this.player.color;
       you.size = 2;
       this.world.map.add(you);
