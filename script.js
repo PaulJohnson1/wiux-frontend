@@ -9,6 +9,7 @@ const game = new Game(
     document.getElementById("spawn"),
     document.getElementById("background"),
     document.getElementById("discord"),
+    document.getElementById("legal"),
   ]
 );
 
