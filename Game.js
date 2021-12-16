@@ -200,7 +200,7 @@ export default class Game {
 
       this.socket.send(writer.write());
     } else if (type === 5) {
-      this.world.map.clear()    ;
+      this.world.map.clear();
 
       while (true) {
         const x = reader.vi();
