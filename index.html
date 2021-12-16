@@ -58,13 +58,23 @@
         top: 50%;
         transform: translate(-50%, -50%);
       }
+
+      .boring {
+        font: 20px Arial;
+        left: 20px;
+        position: fixed;
+        top: 10px;
+      }
     </style>
   </head>
   <body>
-    <img id="background" src="wiux_background.png"/>
-    <input id="input" placeholder="Name" maxlength=50></input>
+    <img id="background" src="wiux_background.png"/><input id="input" placeholder="Name" maxlength=50></input>
     <div id="spawn">Join Game</div>
     <iframe id="discord" src="https://discord.com/widget?id=919224792408809502&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+    <div class="boring">
+      <a style="color: #fff;" href="/boring/pp.html">Privacy Policy</a>
+      <a style="color: #fff;" href="/boring/tos.html">Terms of use</a>
+    </div>
     <canvas id="canvas"></canvas>
     <script type="module" src="script.js"></script>
   </body>
