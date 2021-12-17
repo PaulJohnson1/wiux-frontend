@@ -8,7 +8,10 @@ export default class Upgrade {
     this.name = name;
     this.max = max;
     this.value = 0;
-    this.width = 150;
+    this.baseWidth = 20;
+    this.width = this.baseWidth;
+    this.widthIncrement = 25;
+    this.maxWidth = this.baseWidth + this.widthIncrement * max;
     this.height = 40;
     this.id = game.nextUpgradeId++;
 
@@ -18,7 +21,7 @@ export default class Upgrade {
 
       if (
         clientX < this.x ||
-        clientX > this.x + this.width ||
+        clientX > this.x + this.maxWidth ||
         clientY > this.y + this.height ||
         clientY < this.y
       ) return;
@@ -32,12 +35,23 @@ export default class Upgrade {
   }
 
   render() {
-    this.game.ctx.globalAlpha = 0.6;
+    this.width = this.baseWidth + this.value * this.widthIncrement;
+    
     this.game.ctx.strokeStyle = `#777`;
     this.game.ctx.lineWidth = 3.5 * devicePixelRatio;
-    this.game.ctx.fillStyle = `hsl(${this.id * 30}, 100%, 50%)`;
+    this.game.ctx.fillStyle = `hsla(${this.id * 30}, 100%, 50%, 20%)`;
     this.game.ctx.shadowColor = this.game.ctx.strokeStyle;
     this.game.ctx.shadowBlur = 10;
+    this.game.ctx.fillRoundRect(
+      this.x / devicePixelRatio,
+      this.y / devicePixelRatio,
+      this.maxWidth / devicePixelRatio,
+      this.height / devicePixelRatio,
+      6 / devicePixelRatio
+    );
+
+    this.game.ctx.fillStyle = `hsl(${this.id * 30}, 100%, 50%)`;
+
     this.game.ctx.fillRoundRect(
       this.x / devicePixelRatio,
       this.y / devicePixelRatio,
@@ -45,6 +59,7 @@ export default class Upgrade {
       this.height / devicePixelRatio,
       6 / devicePixelRatio
     );
+
     this.game.ctx.stroke();
     this.game.ctx.font = `${12 / devicePixelRatio}px Ubuntu`;
     this.game.ctx.fillStyle = "#000";
