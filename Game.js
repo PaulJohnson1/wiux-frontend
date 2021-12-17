@@ -2,6 +2,7 @@ import { Reader, Writer } from "./Coder.js";
 import Circle from "./Entity/Circle.js";
 import MinimapEntity from "./Entity/MinimapEntity.js";
 import Rope from "./Entity/Rope.js";
+import Upgrade from "./Gui/Upgrade.js";
 import unshuffle from "./unshuffle.js";
 import nothing from "./sha256.js";
 
@@ -34,11 +35,11 @@ export default class Game {
     this.elements = elements;
 
     this.ctx = canvas.getContext("2d");
-    // this.socket = new WebSocket("ws://localhost:1234");
     this.socket = new WebSocket("wss://wiux-backend.pauljohnson11.repl.co");
     this.socket.binaryType = "arraybuffer";
     this.socket.bitsRecieved = 0;
     this.socket.packetsRecieved = 0;
+    this.nextUpgradeId = 0;
 
     this.memory = new WebAssembly.Memory({
       initial: 1024,
@@ -57,8 +58,7 @@ export default class Game {
         32, 3, 32, 3, 44, 0, 0, 32, 2, 16, 1, 65, 255, 1, 113, 115, 58, 0, 0,
         32, 3, 65, 1, 106, 33, 3, 12, 0, 11, 11, 11, 34, 0, 32, 0, 32, 0, 40, 2,
         0, 65, 191, 150, 131, 4, 108, 65, 1, 106, 65, 205, 155, 238, 214, 6,
-        111, 54, 2, 0, 32, 0, 40, 2, 0, 15, 11, 0, 23, 4, 110, 97, 109, 101, 2,
-        14, 255, 255, 255, 255, 7, 0, 255, 255, 255, 255, 7, 0, 3, 65, 66, 67,
+        111, 54, 2, 0, 32, 0, 40, 2, 0, 15, 11
       ]),
       {
         a: { memory: this.memory },
@@ -70,48 +70,12 @@ export default class Game {
     this.mouse = {};
 
     this.upgrades = [
-      {
-        y: 50 * 0,
-        name: "flail knockback",
-        value: 0,
-        hue: 0,
-        id: 0,
-      },
-      {
-        y: 50 * 1,
-        name: "flail resistance",
-        value: 0,
-        hue: 10,
-        id: 1,
-      },
-      {
-        y: 50 * 2,
-        name: "flail friction",
-        value: 0,
-        hue: 20,
-        id: 2,
-      },
-      {
-        y: 50 * 3,
-        name: "rope tightness",
-        value: 0,
-        hue: 30,
-        id: 3,
-      },
-      {
-        y: 50 * 4,
-        name: "rope rest length",
-        value: 0,
-        hue: 40,
-        id: 4,
-      },
-      {
-        y: 50 * 5,
-        name: "speed",
-        value: 0,
-        hue: 50,
-        id: 5,
-      },
+      new Upgrade(this, 25, 50 * 0 + 25, "flail knockback", 10),
+      new Upgrade(this, 25, 50 * 1 + 25, "flail resistance", 10),
+      new Upgrade(this, 25, 50 * 2 + 25, "flail friction", 10),
+      new Upgrade(this, 25, 50 * 3 + 25, "rope tightness", 10),
+      new Upgrade(this, 25, 50 * 4 + 25, "rope rest length", 10),
+      new Upgrade(this, 25, 50 * 5 + 25, "speed", 10),
     ];
 
     this.stats = 0;
@@ -144,21 +108,6 @@ export default class Game {
       clientY *= devicePixelRatio;
 
       this.mouse.pressed = true;
-
-      for (const upgrade of this.upgrades) {
-        if (
-          clientX > 0 &&
-          clientX < 150 &&
-          clientY < upgrade.y + 40 &&
-          clientY > upgrade.y
-        ) {
-          const writer = new Writer();
-          writer.vu(2);
-          writer.vu(upgrade.id);
-
-          this.socket.send(writer.write());
-        }
-      }
     });
 
     this.canvas.addEventListener("mouseup", () => {
@@ -302,7 +251,7 @@ export default class Game {
     this.ctx.fill();
 
     // rendering grid
-    const increment = 50 / devicePixelRatio;
+    const increment = 50 / devicePixelRatio / this.fov;
 
     const xOffset = this.getSSX(0) % increment;
     const yOffset = this.getSSY(0) % increment;
@@ -335,38 +284,9 @@ export default class Game {
       entity.render();
     });
 
-    this.ctx.globalAlpha = 0.6;
-
-    for (const upgrade of this.upgrades) {
-      this.ctx.fillStyle = `hsl(${upgrade.hue}, 100%, 50%)`;
-      this.ctx.shadowBlur = 0;
-      this.ctx.fillRoundRect(
-        0,
-        upgrade.y / devicePixelRatio,
-        150 / devicePixelRatio,
-        40 / devicePixelRatio,
-        6 / devicePixelRatio
-      );
-
-      this.ctx.font = `${12 / devicePixelRatio}px Arial`;
-      this.ctx.fillStyle = "#000";
-      this.ctx.fillText(
-        upgrade.name,
-        10 / devicePixelRatio,
-        (upgrade.y + 45 / 2) / devicePixelRatio
-      );
-
-      this.ctx.font = `${20 / devicePixelRatio}px Arial`;
-
-      this.ctx.fillText(
-        upgrade.value,
-        100 / devicePixelRatio,
-        (upgrade.y + 45 / 2) / devicePixelRatio
-      );
-    }
-
     // minimap
     this.ctx.fillStyle = "#555";
+    this.ctx.globalAlpha = 0.7;
     this.ctx.beginPath();
     this.ctx.arc(
       125 / devicePixelRatio,
@@ -378,7 +298,9 @@ export default class Game {
     this.ctx.fill();
     this.ctx.closePath();
 
-    this.world.map.forEach(entity => entity.render());    
+    this.world.map.forEach(entity => entity.render());
+
+    for (const upgrade of this.upgrades) upgrade.render();
   }
 
   sendUpdate() {
@@ -397,12 +319,12 @@ export default class Game {
 
   tick() {
     if (this.player) {
-      const you = new MinimapEntity(this);
-      you.x = -this.player.x / this.world.size * 100 / devicePixelRatio + 125 / devicePixelRatio;
-      you.y = -this.player.y / this.world.size * 100 / devicePixelRatio + innerHeight - 125 / devicePixelRatio;
-      you.color = this.player.color;
-      you.size = 2;
-      this.world.map.add(you);
+      // const you = new MinimapEntity(this);
+      // you.x = -this.player.x / this.world.size * 100 / devicePixelRatio + 125 / devicePixelRatio;
+      // you.y = -this.player.y / this.world.size * 100 / devicePixelRatio + innerHeight - 125 / devicePixelRatio;
+      // you.color = this.player.color;
+      // you.size = 2;
+      // this.world.map.add(you);
     }
 
     const elementsStyle = this.player == null ? "" : "none";

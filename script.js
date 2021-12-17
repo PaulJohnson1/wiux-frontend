@@ -7,7 +7,7 @@ const game = new Game(
   [
     document.getElementById("input"),
     document.getElementById("spawn"),
-    document.getElementById("background"),
+    // document.getElementById("background"),
     document.getElementById("discord"),
     document.getElementById("legal"),
   ]
