@@ -35,7 +35,7 @@ export default class Upgrade {
     this.game.ctx.globalAlpha = 0.6;
     this.game.ctx.strokeStyle = `#777`;
     this.game.ctx.lineWidth = 3.5 * devicePixelRatio;
-    this.game.ctx.fillStyle = `hsl(180, 100%, 50%)`;
+    this.game.ctx.fillStyle = `hsl(${this.id * 30}, 100%, 50%)`;
     this.game.ctx.shadowColor = this.game.ctx.strokeStyle;
     this.game.ctx.shadowBlur = 10;
     this.game.ctx.fillRoundRect(
