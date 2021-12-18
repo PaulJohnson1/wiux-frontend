@@ -3,8 +3,7 @@ import Circle from "./Entity/Circle.js";
 import MinimapEntity from "./Entity/MinimapEntity.js";
 import Rope from "./Entity/Rope.js";
 import Upgrade from "./Gui/Upgrade.js";
-import unshuffle from "./unshuffle.js";
-import nothing from "./sha256.js";
+import nothing from "./sha256.js"
 
 // thank you tom :D
 CanvasRenderingContext2D.prototype.fillRoundRect = function (
@@ -41,42 +40,22 @@ export default class Game {
     this.socket.packetsRecieved = 0;
     this.nextUpgradeId = 0;
 
-    this.memory = new WebAssembly.Memory({
-      initial: 1024,
-      maximum: 1024,
-    });
-
-    this.HEAPU8 = new Uint8Array(this.memory.buffer);
-
-    WebAssembly.instantiate(
-      new Uint8Array([
-        0, 97, 115, 109, 1, 0, 0, 0, 1, 12, 2, 96, 3, 127, 127, 127, 0, 96, 1,
-        127, 1, 127, 2, 16, 1, 1, 97, 6, 109, 101, 109, 111, 114, 121, 2, 1,
-        128, 8, 128, 8, 3, 3, 2, 0, 1, 7, 23, 2, 9, 103, 101, 116, 82, 97, 110,
-        100, 111, 109, 0, 0, 7, 115, 104, 117, 102, 102, 108, 101, 0, 1, 10, 86,
-        2, 49, 1, 1, 127, 32, 0, 33, 3, 2, 64, 3, 64, 32, 3, 32, 1, 75, 13, 1,
-        32, 3, 32, 3, 44, 0, 0, 32, 2, 16, 1, 65, 255, 1, 113, 115, 58, 0, 0,
-        32, 3, 65, 1, 106, 33, 3, 12, 0, 11, 11, 11, 34, 0, 32, 0, 32, 0, 40, 2,
-        0, 65, 191, 150, 131, 4, 108, 65, 1, 106, 65, 205, 155, 238, 214, 6,
-        111, 54, 2, 0, 32, 0, 40, 2, 0, 15, 11, 0, 23, 4, 110, 97, 109, 101,
-        2, 14, 255, 255, 255, 255, 7, 0, 255, 255, 255, 255, 7, 0, 3, 65, 
-      ]),
-      {
-        a: { memory: this.memory },
-      }
-    ).then((wasm) => (this.wasm = wasm));
-
     this.fov = 1;
 
     this.mouse = {};
 
+    this.camera = {
+      x: 0,
+      y: 0
+    }
+
     this.upgrades = [
-      new Upgrade(this, 25, 50 * 0 + 25, "flail knockback", 10),
-      new Upgrade(this, 25, 50 * 1 + 25, "flail resistance", 10),
-      new Upgrade(this, 25, 50 * 2 + 25, "flail friction", 10),
-      new Upgrade(this, 25, 50 * 3 + 25, "rope tightness", 10),
-      new Upgrade(this, 25, 50 * 4 + 25, "rope rest length", 10),
-      new Upgrade(this, 25, 50 * 5 + 25, "speed", 10),
+      new Upgrade(this, 25, 50 * 0 + 25, "Flail Knockback", 10),
+      new Upgrade(this, 25, 50 * 1 + 25, "Flail Resistance", 10),
+      new Upgrade(this, 25, 50 * 2 + 25, "Flail Friction", 10),
+      new Upgrade(this, 25, 50 * 3 + 25, "Rope Tightness", 10),
+      new Upgrade(this, 25, 50 * 4 + 25, "Rope Rest length", 10),
+      new Upgrade(this, 25, 50 * 5 + 25, "Speed", 10),
     ];
 
     this.stats = 0;
@@ -121,7 +100,7 @@ export default class Game {
 
       // console.log("bits per second recieved", this.socket.bitsRecieved / this.socket.packetsRecieved * 60);
 
-      const reader = new Reader(unshuffle(this, data));
+      const reader = new Reader(data);
 
       try {
         this.parseUpdate(reader);
@@ -129,6 +108,18 @@ export default class Game {
         alert(`${error.message}\n${error.stack}`);
       }
     });
+
+    this.updateCamera();
+  }
+
+  updateCamera() {
+    requestAnimationFrame((() => this.updateCamera()));
+
+    if (this.player) {
+      this.camera.x += (this.player.x - this.camera.x) / 9;
+      this.camera.y += (this.player.y - this.camera.y) / 9;
+      this.render();
+    }
   }
 
   parseUpdate(reader) {
@@ -165,8 +156,8 @@ export default class Game {
         if (x === 1234) break;
 
         const circle = new MinimapEntity(this);
-        circle.x = x / 127 * 100 / devicePixelRatio + 125 / devicePixelRatio;
-        circle.y = reader.vi() / 127 * 100 / devicePixelRatio + innerHeight - 125 / devicePixelRatio;
+        circle.x = x;
+        circle.y = reader.vi();
         circle.color = reader.vu();
         circle.size = reader.vu() / this.world.size * 100;
 
@@ -216,92 +207,135 @@ export default class Game {
     this.socket.send(writer.write());
   }
 
-  getSSX(worldX) {
-    return (
-      ((this.player.x - worldX) / this.fov +
-        (window.innerWidth / 2) * devicePixelRatio) /
-      devicePixelRatio
-    );
+  getSSX(worldX, scale = true) {
+    return !scale ?
+      (this.camera.x - worldX) / this.fov + innerWidth / 2 :
+      (this.camera.x - worldX) / this.fov / devicePixelRatio + innerWidth / 2;
   }
 
-  getSSY(worldY) {
-    return (
-      ((this.player.y - worldY) / this.fov +
-        (window.innerHeight / 2) * devicePixelRatio) /
-      devicePixelRatio
-    );
+  getSSY(worldY, scale = true) {
+    return !scale ?
+      (this.camera.y - worldY) / this.fov + innerHeight / 2 :
+      (this.camera.y - worldY) / this.fov / devicePixelRatio + innerHeight / 2;
+  }
+
+  drawCircle({ x, y, r, color, strokeColor, glowColor, strokeWidth, glow }) {
+    this.ctx.fillStyle = color;
+    this.ctx.strokeColor = strokeColor;
+    this.ctx.shadowBlur = glow || 0;
+    this.ctx.shadowColor = glowColor;
+    this.ctx.lineWidth = strokeWidth || 1;
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, r, 0, Math.PI * 2);
+    this.ctx.closePath();
+    this.ctx.fill();
+    if (strokeColor) this.ctx.stoke();
+  }
+
+  drawRect({ x, y, w, h, color, strokeColor, glowColor, strokeWidth, glow }) {
+    this.ctx.fillStyle = color;
+    this.ctx.strokeColor = strokeColor;
+    this.ctx.shadowBlur = glow || 0;
+    this.ctx.shadowColor = glowColor;
+    this.ctx.lineWidth = strokeWidth || 1;
+    this.ctx.beginPath();
+    this.ctx.rect(x, y, w, h);
+    this.ctx.closePath();
+    this.ctx.fill();
+    if (strokeColor) this.ctx.stoke();
+  }
+
+  drawLine({ fromX, fromY, toX, toY, color, glowColor, strokeWidth, glow }) {
+    this.ctx.strokeStyle = color;
+    this.ctx.shadowBlur = glow || 0;
+    this.ctx.shadowColor = glowColor;
+    this.ctx.lineWidth = strokeWidth || 1;
+    this.ctx.beginPath();
+    this.ctx.moveTo(fromX, fromY);
+    this.ctx.lineTo(toX, toY);
+    this.ctx.closePath();
+    this.ctx.stroke();
+  }
+
+  drawRoundRect({ x, y, w, h, r, color, strokeColor, glowColor, strokeWidth, glow }) {
+    this.ctx.fillStyle = color;
+    this.ctx.strokeStyle = strokeColor;
+    this.ctx.shadowBlur = glow || 0;
+    this.ctx.shadowColor = glowColor;
+    this.ctx.lineWidth = strokeWidth || 1;
+    this.ctx.beginPath();
+    this.ctx.fillRoundRect(x, y, w, h, r);
+    this.ctx.closePath();
+    if (strokeColor) this.ctx.stroke();
+  }
+
+  drawText({ x, y, text, font, color, strokeColor, glowColor, strokeWidth, glow }) {
+    this.ctx.fillStyle = color;
+    this.ctx.strokeStyle = strokeColor;
+    this.ctx.shadowBlur = glow || 0;
+    this.ctx.shadowColor = glowColor;
+    this.ctx.lineWidth = strokeWidth || 1;
+    this.ctx.beginPath();
+    this.ctx.font = font || "";
+    this.ctx.fillText(text, x, y);
+    this.ctx.closePath();
+    if (strokeColor) this.ctx.stroke();
   }
 
   render() {
-    // background color for outside of the map
-    this.ctx.fillStyle = "#333";
-    this.ctx.beginPath();
-    this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    this.ctx.closePath();
+    // clear the canvas
+    this.drawRect({
+      x: 0,
+      y: 0,
+      w: innerWidth,
+      h: innerHeight,
+      color: "#333"
+    });
 
-    this.ctx.fillStyle = "#444";
-    this.ctx.beginPath();
-    this.ctx.arc(
-      this.getSSX(0),
-      this.getSSY(0),
-      this.world.size / this.fov / devicePixelRatio,
-      0,
-      Math.PI * 2
-    );
-    this.ctx.closePath();
-    this.ctx.fill();
+    // draw the map
+    this.drawCircle({
+      x: this.getSSX(0),
+      y: this.getSSY(0),
+      r: this.world.size / this.fov / devicePixelRatio,
+      color: "#444"
+    });
 
-    // rendering grid
-    const increment = 50 / devicePixelRatio / this.fov;
+    // draw the grid
+    const increment = 50 / this.fov / devicePixelRatio;
 
     const xOffset = this.getSSX(0) % increment;
     const yOffset = this.getSSY(0) % increment;
 
-    this.ctx.strokeStyle = "#4f4f4f";
-
-    for (let x = 0; x < window.innerWidth; x += increment) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x + xOffset, 0);
-      this.ctx.lineTo(x + xOffset, window.innerHeight);
-      this.ctx.closePath();
-      this.ctx.stroke();
+    for (let x = 0; x < innerWidth + increment; x += increment) {
+      this.drawLine({
+        fromX: x + xOffset,
+        fromY: 0,
+        toX: x + xOffset,
+        toY: innerHeight,
+        color: "#4f4f4f"
+      });
     }
 
-    for (let y = 0; y < window.innerHeight + increment; y += increment) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y + yOffset);
-      this.ctx.lineTo(window.innerWidth, y + yOffset);
-      this.ctx.closePath();
-      this.ctx.stroke();
+    for (let y = 0; y < innerHeight + increment; y += increment) {
+      this.drawLine({
+        fromX: 0,
+        fromY: y + yOffset,
+        toX: innerWidth,
+        toY: y + yOffset,
+        color: "#4f4f4f"
+      });
     }
 
-    this.world.entities.forEach((entity) => {
-      if (entity instanceof Rope) entity.render();
-    });
+    this.world.entities.forEach(entity => entity.render());
+    this.upgrades.forEach(upgrade => upgrade.render());
 
-    this.world.entities.forEach((entity) => {
-      if (entity instanceof Rope) return;
-
-      entity.render();
-    });
-
-    // minimap
-    this.ctx.fillStyle = "#555";
-    this.ctx.globalAlpha = 0.7;
-    this.ctx.beginPath();
-    this.ctx.arc(
-      125 / devicePixelRatio,
-      window.innerHeight - 125 / devicePixelRatio,
-      100 / devicePixelRatio,
-      0,
-      Math.PI * 2
-    );
-    this.ctx.fill();
-    this.ctx.closePath();
-
+    this.drawCircle({
+      x: 125 / devicePixelRatio,
+      y: innerHeight - 125 / devicePixelRatio,
+      r: 100 / devicePixelRatio,
+      color: "#3337"
+    })
     this.world.map.forEach(entity => entity.render());
-
-    for (const upgrade of this.upgrades) upgrade.render();
   }
 
   sendUpdate() {
@@ -319,15 +353,6 @@ export default class Game {
   }
 
   tick() {
-    if (this.player) {
-      // const you = new MinimapEntity(this);
-      // you.x = -this.player.x / this.world.size * 100 / devicePixelRatio + 125 / devicePixelRatio;
-      // you.y = -this.player.y / this.world.size * 100 / devicePixelRatio + innerHeight - 125 / devicePixelRatio;
-      // you.color = this.player.color;
-      // you.size = 2;
-      // this.world.map.add(you);
-    }
-
     const elementsStyle = this.player == null ? "" : "none";
 
     this.elements.forEach((e) => (e.style.display = elementsStyle));
@@ -335,7 +360,8 @@ export default class Game {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
 
-    if (this.player) this.render();
-    this.sendUpdate();
+    if (this.player) {
+      this.sendUpdate();
+    }
   }
 }

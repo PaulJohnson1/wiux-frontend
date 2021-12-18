@@ -20,18 +20,17 @@ export default class Rope {
   }
 
   render() {
-    const segments = Array.from(this.segments);
+    for (let i = 1; i < this.length; i++) {
+      const a = this.segments[i - 1];
+      const b = this.segments[i];
 
-    for (let i = 1; i < segments.length; i++) {
-      const a = segments[i - 1];
-      const b = segments[i];
-
-      this.game.ctx.beginPath();
-      this.game.ctx.moveTo(this.game.getSSX(a.x), this.game.getSSY(a.y));
-      this.game.ctx.lineTo(this.game.getSSX(b.x), this.game.getSSY(b.y));
-
-      this.game.ctx.closePath();
-      this.game.ctx.stroke();
+      this.game.drawLine({
+        fromX: this.game.getSSX(a.x),
+        fromY: this.game.getSSY(a.y),
+        toX: this.game.getSSX(b.x),
+        toY: this.game.getSSY(b.y),
+        color: "#888"
+      })
     }
   }
 }

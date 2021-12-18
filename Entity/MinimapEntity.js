@@ -4,19 +4,11 @@ export default class MinimapEntity {
   }
 
   render() {
-    this.game.ctx.fillStyle = `hsl(${this.color}, 100%, 50%)`;
-  
-    this.game.ctx.beginPath();
-
-    this.game.ctx.arc(
-      this.x,
-      this.y,
-      this.size / devicePixelRatio,
-      0,
-      Math.PI * 2
-    );
-
-    this.game.ctx.closePath();
-    this.game.ctx.fill();
+    this.game.drawCircle({
+      x: this.x / 127 * 100 / devicePixelRatio + 125 / devicePixelRatio,
+      y: this.y / 127 * 100 / devicePixelRatio + innerHeight - 125 / devicePixelRatio,
+      r: this.size / devicePixelRatio,
+      color: `hsla(${this.color}, 100%, 50%, 60%)`,
+    });
   }
 }

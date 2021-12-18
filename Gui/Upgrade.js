@@ -37,44 +37,84 @@ export default class Upgrade {
   render() {
     this.width = this.baseWidth + this.value * this.widthIncrement;
     
-    this.game.ctx.strokeStyle = `#777`;
-    this.game.ctx.lineWidth = 3.5 * devicePixelRatio;
-    this.game.ctx.fillStyle = `hsla(${this.id * 30}, 100%, 50%, 20%)`;
-    this.game.ctx.shadowColor = this.game.ctx.strokeStyle;
-    this.game.ctx.shadowBlur = 10;
-    this.game.ctx.fillRoundRect(
-      this.x / devicePixelRatio,
-      this.y / devicePixelRatio,
-      this.maxWidth / devicePixelRatio,
-      this.height / devicePixelRatio,
-      6 / devicePixelRatio
-    );
+    // this.game.ctx.strokeStyle = `#777`;
+    // // this.game.ctx.lineWidth = 3.5 * devicePixelRatio;
+    // this.game.ctx.fillStyle = `hsla(${this.id * 30}, 100%, 50%, 20%)`;
+    // // this.game.ctx.shadowColor = this.game.ctx.strokeStyle;
+    // // this.game.ctx.shadowBlur = 10;
+    // this.game.ctx.fillRoundRect(
+    //   this.x / devicePixelRatio,
+    //   this.y / devicePixelRatio,
+    //   this.maxWidth / devicePixelRatio,
+    //   this.height / devicePixelRatio,
+    //   6 / devicePixelRatio
+    // );
 
-    this.game.ctx.fillStyle = `hsl(${this.id * 30}, 100%, 50%)`;
+    // this.game.ctx.fillStyle = `hsl(${this.id * 30}, 100%, 50%)`;
 
-    this.game.ctx.fillRoundRect(
-      this.x / devicePixelRatio,
-      this.y / devicePixelRatio,
-      this.width / devicePixelRatio,
-      this.height / devicePixelRatio,
-      6 / devicePixelRatio
-    );
+    // this.game.ctx.fillRoundRect(
+    //   this.x / devicePixelRatio,
+    //   this.y / devicePixelRatio,
+    //   this.width / devicePixelRatio,
+    //   this.height / devicePixelRatio,
+    //   6 / devicePixelRatio
+    // );
 
-    this.game.ctx.stroke();
-    this.game.ctx.font = `${12 / devicePixelRatio}px Ubuntu`;
-    this.game.ctx.fillStyle = "#000";
-    this.game.ctx.fillText(
-      this.name,
-      (this.x + 10) / devicePixelRatio,
-      (this.y + 45 / 2) / devicePixelRatio
-    );
+    // this.game.ctx.stroke();
+    // this.game.ctx.font = `${12 / devicePixelRatio}px Ubuntu`;
+    // const offset1 = this.game.ctx.measureText(this.name).width / 2;
+    // this.game.ctx.fillStyle = "#000";
+    // this.game.ctx.fillText(
+    //   this.name,
+    //   (this.x + 10) / devicePixelRatio,
+    //   (this.y + this.height / 2 + offset1) / devicePixelRatio
+    // );
 
-    this.game.ctx.font = `${20 / devicePixelRatio}px Ubuntu`;
+    // this.game.ctx.font = `${20 / devicePixelRatio}px Ubuntu`;
 
-    this.game.ctx.fillText(
-      this.value,
-      (this.x + 100) / devicePixelRatio,
-      (this.y + 45 / 2) / devicePixelRatio
-    );
+    // const offset2 = this.game.ctx.measureText(this.value).width / 2;
+    // this.game.ctx.fillText(
+    //   this.value,
+    //   (this.maxWidth - 10) / devicePixelRatio,
+    //   (this.y + this.height / 2 + offset2) / devicePixelRatio
+    // );
+
+    this.game.drawRoundRect({
+      x: this.x / devicePixelRatio,
+      y: this.y / devicePixelRatio,
+      w: this.maxWidth / devicePixelRatio,
+      h: this.height / devicePixelRatio,
+      r: 6 / devicePixelRatio,
+      color: `hsla(${this.id * 30}, 100%, 50%, 20%)`
+    });
+
+    this.game.drawRoundRect({
+      x: this.x / devicePixelRatio,
+      y: this.y / devicePixelRatio,
+      w: this.width / devicePixelRatio,
+      h: this.height / devicePixelRatio,
+      r: 6 / devicePixelRatio,
+      color: `hsl(${this.id * 30}, 100%, 50%)`,
+      strokeColor: "#777",
+      glowColor: "#777",
+      strokeWidth: 3.5 / devicePixelRatio,
+      glow: 10 / devicePixelRatio
+    });
+
+    this.game.drawText({
+      x: (this.x + 10) / devicePixelRatio,
+      y: (this.y + this.height / 2 + 3) / devicePixelRatio,
+      text: this.name,
+      font: `${12 / devicePixelRatio}px Ubuntu`,
+      color: `#000`
+    });
+
+    this.game.drawText({
+      x: (this.maxWidth - 10) / devicePixelRatio,
+      y: (this.y + this.height / 2 + 5) / devicePixelRatio,
+      text: this.value,
+      font: `${20 / devicePixelRatio}px Ubuntu`,
+      color: "#000"
+    });
   }
 }
