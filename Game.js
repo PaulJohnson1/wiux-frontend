@@ -34,7 +34,8 @@ export default class Game {
     this.elements = elements;
 
     this.ctx = canvas.getContext("2d");
-    this.socket = new WebSocket("wss://wiux-backend.pauljohnson11.repl.co");
+    // this.scoket = new WebSocket("wss://wiux.io/socket/"); // production server
+    this.socket = new WebSocket("wss://wiux-backend.pauljohnson11.repl.co"); // development server
     this.socket.binaryType = "arraybuffer";
     this.socket.bitsRecieved = 0;
     this.socket.packetsRecieved = 0;
