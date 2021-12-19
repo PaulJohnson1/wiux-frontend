@@ -17,11 +17,16 @@ export default class Circle {
       this.alpha = 100;
     }
 
-    this.startX = this.destinationX;
-    this.startY = this.destinationY;
+    this.startX = this.destinationX || null;
+    this.startY = this.destinationY || null;
 
     this.destinationX = reader.vi();
     this.destinationY = reader.vi();
+
+    if (this.startX == null || this.startY == null) {
+      this.startX = this.destinationX;
+      this.startY = this.destinationY;
+    }
 
     this.size = reader.vu();
   }

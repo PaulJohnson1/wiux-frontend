@@ -34,8 +34,9 @@ export default class Game {
     this.elements = elements;
 
     this.ctx = canvas.getContext("2d");
-    // this.scoket = new WebSocket("wss://wiux.io/socket/"); // production server
-    this.socket = new WebSocket("wss://wiux-backend.pauljohnson11.repl.co"); // development server
+
+    if (location.href.includes("wiux.io")) this.scoket = new WebSocket("wss://wiux.io/socket/"); // production server
+    else this.socket = new WebSocket("wss://wiux-backend.pauljohnson11.repl.co"); // development server
     this.socket.binaryType = "arraybuffer";
     this.socket.bitsRecieved = 0;
     this.socket.packetsRecieved = 0;
@@ -111,11 +112,7 @@ export default class Game {
 
       const reader = new Reader(data);
 
-      try {
-        this.parseUpdate(reader);
-      } catch (error) {
-        alert(`${error.message}\n${error.stack}`);
-      }
+      this.parseUpdate(reader);
     });
 
     this.updateCamera();
@@ -131,8 +128,6 @@ export default class Game {
 
   updateCamera() {
     const frameDeltaTime = Date.now() - this.lastFrameTime;
-
-    console.log
 
     this.framesSinceLastTick++;
     requestAnimationFrame((() => this.updateCamera()));
