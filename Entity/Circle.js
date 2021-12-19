@@ -1,8 +1,12 @@
-import { constrain } from "../util.js";
+import { constrain, lerp } from "../util.js";
 
 export default class Circle {
   constructor(game) {
     this.game = game;
+    this.startX = 0;
+    this.startY = 0;
+    this.destinationX = 0;
+    this.destinationY = 0;
   }
 
   parseBinary(reader, isCreation) {
@@ -13,12 +17,19 @@ export default class Circle {
       this.alpha = 100;
     }
 
-    this.x = reader.vi();
-    this.y = reader.vi();
+    this.startX = this.destinationX;
+    this.startY = this.destinationY;
+
+    this.destinationX = reader.vi();
+    this.destinationY = reader.vi();
+
     this.size = reader.vu();
   }
 
-  render() {
+  render(deltaTick) {
+    this.x = lerp(this.startX, this.destinationX, deltaTick)
+    this.y = lerp(this.startY, this.destinationY, deltaTick)
+
     this.game.drawCircle({
       x: this.game.getSSX(this.x),
       y: this.game.getSSY(this.y),

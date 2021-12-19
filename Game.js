@@ -40,7 +40,12 @@ export default class Game {
     this.socket.packetsRecieved = 0;
     this.nextUpgradeId = 0;
 
+    this.ticksPerSecond = 20;
+
     this.fov = 1;
+    this.fps = 60;
+
+    this.framesSinceLastTick = 0;
 
     this.mouse = {};
 
@@ -109,17 +114,33 @@ export default class Game {
       }
     });
 
+    this.lastTickTime = Date.now() - 1;
+
     this.updateCamera();
   }
 
+  get framesPerTick() {
+    return this.fps / this.ticksPerSecond;
+  }
+
   updateCamera() {
+    const frameDeltaTime = Date.now() - this.lastTickTime;
+
+    this.framesSinceLastTick++;
     requestAnimationFrame((() => this.updateCamera()));
 
     if (this.player) {
-      this.camera.x += (this.player.x - this.camera.x) / 9;
-      this.camera.y += (this.player.y - this.camera.y) / 9;
-      this.render();
+      this.camera.x += (this.player.x - this.camera.x) / (2 * frameDeltaTime);
+      this.camera.y += (this.player.y - this.camera.y) / (2 * frameDeltaTime);
+
+      // just in case nan happens to attempt to ruin our day
+      this.camera.x ||= 0;
+      this.camera.y ||= 0;
+      
+      this.render(this.framesSinceLastTick / this.framesPerTick);
     }
+ 
+    this.lastTickTime = Date.now();
   }
 
   parseUpdate(reader) {
@@ -282,7 +303,7 @@ export default class Game {
     if (strokeColor) this.ctx.stroke();
   }
 
-  render() {
+  render(deltaTick) {
     // clear the canvas
     this.drawRect({
       x: 0,
@@ -326,7 +347,7 @@ export default class Game {
       });
     }
 
-    this.world.entities.forEach(entity => entity.render());
+    this.world.entities.forEach(entity => entity.render(deltaTick));
     this.upgrades.forEach(upgrade => upgrade.render());
 
     this.drawCircle({
@@ -353,6 +374,14 @@ export default class Game {
   }
 
   tick() {
+    new Promise(resolve =>
+      requestAnimationFrame(t1 =>
+        requestAnimationFrame(t2 => resolve(1000 / (t2 - t1)))
+      )
+    ).then(fps => this.fps = (this.fps + fps) / 2)
+
+    this.framesSinceLastTick = 0;
+
     const elementsStyle = this.player == null ? "" : "none";
 
     this.elements.forEach((e) => (e.style.display = elementsStyle));
