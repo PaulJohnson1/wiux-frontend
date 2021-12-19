@@ -35,7 +35,7 @@ export default class Upgrade {
 
     if (this.id < 9) {
       const keyCode = "Digit" + (this.id + 1);
-      this.game.canvas.addEventListener('keyup', (key) => {
+      document.addEventListener('keyup', (key) => {
         if (key.code === keyCode) {
           const writer = new Writer();
           writer.vu(2);
