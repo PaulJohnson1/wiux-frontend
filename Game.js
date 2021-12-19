@@ -40,12 +40,15 @@ export default class Game {
     this.socket.packetsRecieved = 0;
     this.nextUpgradeId = 0;
 
-    this.ticksPerSecond = 20;
-
     this.fov = 1;
     this.fps = 60;
 
     this.framesSinceLastTick = 0;
+
+    this.averageMillisecondsPerTick = [20];
+
+    this.lastFrameTime = Date.now() - 1;
+    this.lastTickTime = Date.now() - 1;
 
     this.mouse = {};
 
@@ -114,9 +117,11 @@ export default class Game {
       }
     });
 
-    this.lastTickTime = Date.now() - 1;
-
     this.updateCamera();
+  }
+
+  get ticksPerSecond() {
+    return 1 / (this.averageMillisecondsPerTick.reduce((acc, v) => acc + v, 0) / this.averageMillisecondsPerTick.length / 1000);
   }
 
   get framesPerTick() {
@@ -124,7 +129,9 @@ export default class Game {
   }
 
   updateCamera() {
-    const frameDeltaTime = Date.now() - this.lastTickTime;
+    const frameDeltaTime = Date.now() - this.lastFrameTime;
+
+    console.log
 
     this.framesSinceLastTick++;
     requestAnimationFrame((() => this.updateCamera()));
@@ -140,7 +147,7 @@ export default class Game {
       this.render(this.framesSinceLastTick / this.framesPerTick);
     }
  
-    this.lastTickTime = Date.now();
+    this.lastFrameTime = Date.now();
   }
 
   parseUpdate(reader) {
@@ -374,6 +381,8 @@ export default class Game {
   }
 
   tick() {
+    const deltaTime = Date.now() - this.lastTickTime;
+    this.lastTickTime = Date.now();
     new Promise(resolve =>
       requestAnimationFrame(t1 =>
         requestAnimationFrame(t2 => resolve(1000 / (t2 - t1)))
@@ -381,6 +390,9 @@ export default class Game {
     ).then(fps => this.fps = (this.fps + fps) / 2)
 
     this.framesSinceLastTick = 0;
+
+    this.averageMillisecondsPerTick.push(deltaTime);
+    if (this.averageMillisecondsPerTick.length > 25) this.averageMillisecondsPerTick.shift();
 
     const elementsStyle = this.player == null ? "" : "none";
 
