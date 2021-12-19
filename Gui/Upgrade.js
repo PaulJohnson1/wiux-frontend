@@ -33,8 +33,8 @@ export default class Upgrade {
       this.game.socket.send(writer.write());
     });
 
-    if (this.id < 10) {
-      const keyCode = "Digit" + this.id;
+    if (this.id < 9) {
+      const keyCode = "Digit" + (this.id + 1);
       this.game.canvas.addEventListener('keyup', (key) => {
         if (key.code === keyCode) {
           const writer = new Writer();
