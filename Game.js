@@ -133,8 +133,8 @@ export default class Game {
     requestAnimationFrame((() => this.updateCamera()));
 
     if (this.player) {
-      this.camera.x += (this.player.x - this.camera.x) / (2 * frameDeltaTime);
-      this.camera.y += (this.player.y - this.camera.y) / (2 * frameDeltaTime);
+      this.camera.x += (this.player.x - this.camera.x) / (20 / frameDeltaTime);
+      this.camera.y += (this.player.y - this.camera.y) / (20 / frameDeltaTime);
 
       // just in case nan happens to attempt to ruin our day
       this.camera.x ||= 0;
