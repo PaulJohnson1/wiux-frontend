@@ -38,6 +38,8 @@ export default class Game {
     if (location.href.includes("wiux.io")) this.socket = new WebSocket("wss://www.wiux.io/socket/"); // production server
     else this.socket = new WebSocket("wss://wiux-backend.pauljohnson11.repl.co"); // development server
 
+    this.connectionTimeout = setTimeout(() => location.reload(), 7_000)
+
     this.socket.binaryType = "arraybuffer";
     this.socket.bitsRecieved = 0;
     this.socket.packetsRecieved = 0;
@@ -104,6 +106,11 @@ export default class Game {
     this.canvas.addEventListener("mouseup", () => {
       this.mouse.pressed = false;
     });
+
+    this.socket.addEventListener("open", () => {
+      this.elements[1].innerHTML = "Join Game";
+      clearTimeout(this.connectionTimeout);
+    })
 
     this.socket.addEventListener("message", ({ data }) => {
       this.socket.bitsRecieved += new Uint8Array(data).length * 8;
