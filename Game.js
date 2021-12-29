@@ -3,7 +3,8 @@ import Circle from "./Entity/Circle.js";
 import MinimapEntity from "./Entity/MinimapEntity.js";
 import Rope from "./Entity/Rope.js";
 import Upgrade from "./Gui/Upgrade.js";
-import nothing from "./sha256.js"
+import Shuffler from "./Shuffler.js";
+import nothing from "./sha256.js";
 
 // thank you tom :D
 CanvasRenderingContext2D.prototype.fillRoundRect = function (
@@ -118,7 +119,7 @@ export default class Game {
 
       // console.log("bits per second recieved", this.socket.bitsRecieved / this.socket.packetsRecieved * 60);
 
-      const reader = new Reader(data);
+      const reader = new Reader(Shuffler.unshuffle(data));
 
       this.parseUpdate(reader);
     });
@@ -182,13 +183,11 @@ export default class Game {
     } else if (type === 5) {
       this.world.map.clear();
 
-      while (true) {
-        const x = reader.vi();
+      const count = reader.vu();
 
-        if (x === 1234) break;
-
+      for (let i = 0; i < count; i++) {
         const circle = new MinimapEntity(this);
-        circle.x = x;
+        circle.x = reader.vi();
         circle.y = reader.vi();
         circle.color = reader.vu();
         circle.size = reader.vu() / this.world.size * 100;
